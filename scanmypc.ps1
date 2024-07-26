@@ -33,8 +33,8 @@ Show-TypingText -text $text -delay 0.2
 
 $hostname = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 $hostname = $hostname -creplace '^[^\\]*\\', ''
-$bootDrive = Get-CimInstance -Class Win32_LogicalDisk | Where-Object {$_.VolumeName -eq "Windows" } | select -ExpandProperty DeviceID
-$outputFile = "$bootDrive\Users\$hostname\OneDrive - University of Otago\Desktop\system_info.txt"
+$desktopPath = [Environment]::GetFolderPath("Desktop")
+$outputFile = "$desktopPath\system_info.txt"
 
 # Cleans file before running
 Set-Content -Path $outputFile -Value ""
