@@ -64,7 +64,7 @@ Set-ExecutionPolicy Restricted
 ---
 ## Possible Issues:
 ### Directory doesn't exist
-If it can't find a directory to save a `.txt` file, you need to **change path** to **desktop** in the script.
+If it can't find a directory/active USBs ports to save a `.txt` file, you need to **change path** to **desktop** in the script.
 Make sure to use **absolute** path for that. The variable for the path called `$outputFile`. Don't forget to 
 keep `\system_info.txt` at the end of the path. Example:
 ```cmd
