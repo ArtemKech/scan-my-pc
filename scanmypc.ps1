@@ -31,12 +31,13 @@ function Show-TypingText {
 
 Show-TypingText -text $text -delay 0.2
 
-$hostname = (Get-WmiObject Win32_ComputerSystem).Name
-$outputFile = "C:\Users\$hostname\Desktop\system_info.txt"
+$hostname = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+$hostname = $hostname -creplace '^[^\\]*\\', ''
+$bootDrive = Get-CimInstance -Class Win32_LogicalDisk | Where-Object {$_.VolumeName -eq "Windows" } | select -ExpandProperty DeviceID
+$outputFile = "$bootDrive\Users\$hostname\OneDrive - University of Otago\Desktop\system_info.txt"
 
 # Cleans file before running
 Set-Content -Path $outputFile -Value ""
-
 
 # Initializes the output file
 "" | Out-File -FilePath $outputFile
