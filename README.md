@@ -74,6 +74,6 @@ keep `\system_info.txt` at the end of the path. Example:
 It displays all active drivers/USBs ports as I understand. This is why you might see some weird stuff. It also displays 
 integrated cameras on laptops, so just take a note of that.
 
-Usually keyboards and mice have weird names like `DSJDS345` or sometimes it can display it properly 
+Usually keyboards and mice have weird names like `DSJDS345` or sometimes it can display them properly 
 like: `Razer Hunstman Mini`. Don't be scared to see that :)
  
