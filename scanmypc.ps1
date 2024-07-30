@@ -96,7 +96,7 @@ Max Clock Speed: $($processor.MaxClockSpeed) MHz
 # Retrieves and writes GPU info
 $gpus = Get-CimInstance Win32_VideoController
 foreach ($gpu in $gpus) {
-$VRAM = [math]::round($qwMemorySize/1GB, 3)
+$VRAM = [math]::round($gpu.AdapterRAM/1GB, 2)
 $gpuInfo = @"
 ------------------------------------------------------------
 GPU Info:
