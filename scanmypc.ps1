@@ -95,10 +95,9 @@ Max Clock Speed: $($processor.MaxClockSpeed) MHz
 
 # Retrieves and writes GPU info
 $gpus = Get-CimInstance Win32_VideoController
-$qwMemorySize = (Get-ItemProperty -Path "HKLM:\SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0*" -Name HardwareInformation.qwMemorySize -ErrorAction SilentlyContinue)."HardwareInformation.qwMemorySize"
-$VRAM = [math]::round($qwMemorySize/1GB)
 foreach ($gpu in $gpus) {
-    $gpuInfo = @"
+$VRAM = [math]::round($qwMemorySize/1GB, 3)
+$gpuInfo = @"
 ------------------------------------------------------------
 GPU Info:
 ------------------------------------------------------------
@@ -108,8 +107,8 @@ VRAM: $VRAM GB
 
 
 "@
-    $gpuInfo | Out-File -FilePath $outputFile -Append
-}                                                                                             
+   $gpuInfo | Out-File -FilePath $outputFile -Append
+}                                                                                               
                                                                                               
 # Retrieve motherboard information using WMI
 $motherboard = Get-WmiObject Win32_BaseBoard
