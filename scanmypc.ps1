@@ -1,60 +1,142 @@
-﻿
-$text = @"
-          
-          
-                                                                                                               
- oooooooo8    oooooooo8     o      oooo   oooo         oooo     oooo ooooo  oooo         oooooooooo    oooooooo8 
+# Define the output path on the Desktop
+$desktopPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath('Desktop'))
+
+# Path for system info file + 
+$outputFilePath = $desktopPath + "\system_info.txt"
+
+# Function to export browser bookmarks
+function Export-Bookmarks {
+    param (
+        [string]$browserType, # Type of browser (Chrome or Edge)
+        [string]$browserName
+    )
+
+    $bookmarksPath = "$env:LOCALAPPDATA\$browserType\User Data\Default\Bookmarks"
+    $outputFileName = $browserName + '_Bookmarks.json'
+
+    if ($browserType -ne 'Google\Chrome' -and $browserType -ne 'Microsoft\Edge') {
+        
+        Write-Output "`nUnsupported browser type: $browserType"
+    }
+    elseif (-not $browserType) {
+       
+        Write-Output "`nThe browser was not selected"
+    }
+
+    Write-Output "`nChecking for $browserType bookmarks at path: $bookmarksPath"
+
+    # Check if the bookmarks file exists and copy it to the Desktop
+    if (Test-Path $bookmarksPath) {
+        Copy-Item -Path $bookmarksPath -Destination $desktopPath\$outputFileName -ErrorAction Stop
+        Write-Output "`n$browserName bookmarks have been copied to the Desktop"
+    }
+    else {
+        Write-Output "`n$browserName bookmarks file not found at path: $bookmarksPath"
+    }
+}
+
+# Function to export Firefox profile
+function Export-FirefoxProfile {
+    $firefoxProfilesPath = "$env:APPDATA\Mozilla\Firefox\Profiles"
+    $profiles = Get-ChildItem -Path $firefoxProfilesPath -Directory
+
+    if ($profiles.Count -eq 0) {
+        Write-Output "No Firefox profiles found."
+        return
+    }
+
+    foreach ($profile in $profiles) {
+        $profilePath = $profile.FullName
+        if (Test-Path "$profilePath\places.sqlite") {
+            $outputFirefoxProfile = "$desktopPath'Firefox_Profile'"
+
+            Write-Output "Copying Firefox profile from path: $profilePath`n"
+
+            Copy-Item -Path $profilePath -Destination $outputFirefoxProfile -Recurse -ErrorAction Stop
+            Write-Output "Firefox profile has been copied to the Desktop at $outputFirefoxProfile`n"
+            return
+        }
+    }
+
+    Write-Output "No valid Firefox profile found with places.sqlite`n"
+}
+
+# Define ASCII art text
+$asciiArt = @"
+
+
+
+  ooooooo8    oooooooo8     o      oooo   oooo         oooo     oooo ooooo  oooo         oooooooooo    oooooooo8 
 888         o888     88    888      8888o  88           8888o   888    888  88            888    888 o888     88 
  888oooooo  888           8  88     88 888o88           88 888o8 88      888              888oooo88  888         
         888 888o     oo  8oooo88    88   8888           88  888  88      888              888        888o     oo 
-o88oooo888   888oooo88 o88o  o888o o88o    88          o88o  8  o88o    o888o            o888o        888oooo88  
+o88oooo888   888oooo88 o88o  o888o o88o    88          o88o  8  o88o    o888o            o888o        888oooo88   
 
 
 
-                                            GitHub: ArtemKech                                                                                                                                                                                                                              
- 
-                                                                                                         
 "@
 
-function Show-TypingText {
-    param (
-        [string]$text,
-        [int]$delay = 50
-    )
-    
-    foreach ($char in $text.ToCharArray()) {
-        Write-Host -NoNewline $char
-        Start-Sleep -Milliseconds $delay
+$githubText = "
+                                                        GitHub: ArtemKech
+                                                        GitHub: HCooper97
+
+
+
+"
+
+# Display ASCII art in green
+Write-Host $asciiArt -ForegroundColor Green
+
+# Prompt the user to select the browser
+Write-Output "Select the browser to export bookmarks:"
+Write-Output "1 - Chrome"
+Write-Output "2 - Edge"
+Write-Output "3 - Firefox"
+Write-Output "0 - None"
+
+# Read user input
+$userChoice = Read-Host "
+
+Enter your choice"
+
+# Perform the export based on user choice
+try {
+    switch ($userChoice) {
+        1 {
+            Export-Bookmarks -browserType 'Google\Chrome' 'Chrome'
+        }
+        2 {
+            Export-Bookmarks -browserType 'Microsoft\Edge' 'Edge'
+        }
+        3 {
+            Export-FirefoxProfile  # Ensure this function is defined if using
+        }
+        0 {
+            Write-Output ""
+            Write-Output "No bookmarks will be exported."
+        }
+        default {
+            Write-Output ""
+            Write-Output "Invalid choice. Please run the script again and select a valid option."
+        }
     }
-    Write-Host
+}
+catch {
+    Write-Output ""
+    Write-Output "An error occurred: $_"
 }
 
-Show-TypingText -text $text -delay 0.2
+# Initialize the output file with UTF-8 encoding
+Set-Content -Path $outputFilePath -Value "" -Encoding UTF8
 
-$hostname = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-$hostname = $hostname -creplace '^[^\\]*\\', ''
-$desktopPath = [Environment]::GetFolderPath("Desktop")
-$outputFile = "$desktopPath\system_info.txt"
-
-# Cleans file before running
-Set-Content -Path $outputFile -Value ""
-
-# Initializes the output file
-"" | Out-File -FilePath $outputFile
-
-# Get Serial Number
+# Collect and write system information
+# PC Info
+$hostname = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name -replace '^[^\\]*\\', ''
 $serialNumber = (Get-WmiObject -Class Win32_BIOS).SerialNumber
-
-# Get Operating System Information
 $os = Get-WmiObject -Class Win32_OperatingSystem
-
-# Get Registered User
 $registeredUser = $os.RegisteredUser
-
-# Get OS Architecture
 $OSarchitecture = (Get-CimInstance Win32_operatingsystem).OSArchitecture
 
-# Create a string with the information
 $output = @"
 ------------------------------------------------------------
 PC Info:
@@ -67,15 +149,12 @@ Build Number: $($os.BuildNumber)
 Registered User: $registeredUser
 OS Architecture: $OSarchitecture
 
-
 "@
 
-# Output the information to the file
-$output | Out-File -FilePath $outputFile -Append
+$output | Out-File -FilePath $outputFilePath -Append -Encoding UTF8
 
-# Retrieves CPU information using WMI
+# CPU Info
 $cpu = Get-WmiObject Win32_Processor
-$cpuInfo = ""
 foreach ($processor in $cpu) {
     $cpuInfo = @"
 ------------------------------------------------------------
@@ -88,16 +167,16 @@ Number of Cores: $($processor.NumberOfCores)
 Number of Logical Processors: $($processor.NumberOfLogicalProcessors)
 Max Clock Speed: $($processor.MaxClockSpeed) MHz
 
-
 "@
-    $cpuInfo | Out-File -FilePath $outputFile -Append
-}                                            
+    $cpuInfo | Out-File -FilePath $outputFilePath -Append -Encoding UTF8
+}
 
-# Retrieves and writes GPU info
+# GPU Info
 $gpus = Get-CimInstance Win32_VideoController
+$qwMemorySize = (Get-ItemProperty -Path "HKLM:\SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0*" -Name HardwareInformation.qwMemorySize -ErrorAction SilentlyContinue)."HardwareInformation.qwMemorySize"
+$VRAM = [math]::round($qwMemorySize / 1GB)
 foreach ($gpu in $gpus) {
-$VRAM = [math]::round($gpu.AdapterRAM/1GB, 2)
-$gpuInfo = @"
+    $gpuInfo = @"
 ------------------------------------------------------------
 GPU Info:
 ------------------------------------------------------------
@@ -105,15 +184,12 @@ Manufacturer: $($gpu.AdapterCompatibility)
 Model: $($gpu.Name)
 VRAM: $VRAM GB
 
-
 "@
-   $gpuInfo | Out-File -FilePath $outputFile -Append
-}                                                                                               
-                                                                                              
-# Retrieve motherboard information using WMI
-$motherboard = Get-WmiObject Win32_BaseBoard
+    $gpuInfo | Out-File -FilePath $outputFilePath -Append -Encoding UTF8
+}
 
-# Display motherboard information
+# Motherboard Info
+$motherboard = Get-WmiObject Win32_BaseBoard
 $motherboardInfo = @"
 ------------------------------------------------------------
 Motherboard Info:
@@ -123,54 +199,36 @@ Model: $($motherboard.Product)
 Serial Number: $($motherboard.SerialNumber)
 Version: $($motherboard.Version)
 
-
 "@
+$motherboardInfo | Out-File -FilePath $outputFilePath -Append -Encoding UTF8
 
-$motherboardInfo | Out-File -FilePath $outputFile -Append
-
-# Retrieve storage information using WMI
+# Storage Info
 $diskDrives = Get-WmiObject Win32_DiskDrive
-
-# Create a string to store the storage info
 $storageInfo = @"
 ------------------------------------------------------------
 Storage Info:
 ------------------------------------------------------------
-"@
 
-# Loop through each disk drive and collect details
+"@
 foreach ($disk in $diskDrives) {
     $storageInfo += @"
-
 Model: $($disk.Model)
 Size: $([math]::round($disk.Size / 1GB, 2)) GB
 Serial Number: $($disk.SerialNumber)
 Interface Type: $($disk.InterfaceType)
 
-
 "@
 }
+$storageInfo | Out-File -FilePath $outputFilePath -Append -Encoding UTF8
 
-$storageInfo | Out-File -FilePath $outputFile -Append                        
-
-# Retrieves RAM information using WMI
+# RAM Info
 $ramModules = Get-WmiObject Win32_PhysicalMemory
-
-# Initializes total capacity variable
 $totalCapacity = 0
-
-# Loops through each RAM module and accumulate the total capacity
 foreach ($module in $ramModules) {
     $totalCapacity += $module.Capacity
 }
-
-# Converts total capacity to GB and rounds it
 $totalCapacityGB = [math]::round($totalCapacity / 1GB, 2)
-
-
-# Additional information from the first RAM module
 $firstModule = $ramModules | Select-Object -First 1
-
 $ramInfo = @"
 ------------------------------------------------------------
 RAM Info:
@@ -180,17 +238,12 @@ Speed: $($firstModule.Speed) MHz
 Manufacturer: $($firstModule.Manufacturer)
 SerialNumber: $($firstModule.SerialNumber)
 
-
 "@
+$ramInfo | Out-File -FilePath $outputFilePath -Append -Encoding UTF8
 
-$ramInfo | Out-File -FilePath $outputFile -Append
-
-# Initializes USB device count
+# USB Devices Info
 $deviceCount = 1
-
-# Retrieves and filters USB devices
 $pnpUsbDevices = Get-PnpDevice -PresentOnly | Where-Object { $_.InstanceId -match '^USB' }
-
 foreach ($pnpDevice in $pnpUsbDevices) {
     if ($pnpDevice.PNPClass -ne $null) {
         $deviceInfo = @"
@@ -200,12 +253,31 @@ USB Device #$deviceCount Info:
 Name: $($pnpDevice.FriendlyName)
 PNPClass: $($pnpDevice.PNPClass)
 
-
 "@
-        $deviceInfo | Out-File -FilePath $outputFile -Append
+        $deviceInfo | Out-File -FilePath $outputFilePath -Append -Encoding UTF8
         $deviceCount++
     }
 }
 
+# Installed Applications
+$appInfo = @"
+------------------------------------------------------------
+Installed Applications:
+------------------------------------------------------------
+"@
 
-Write-Output "Information collected and saved to $outputFile"
+$appInfo | Out-File -FilePath $outputFilePath -Append -Encoding UTF8
+
+# Installed Applications Collection
+$installedApps = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | 
+Where-Object { $_.DisplayName } | 
+Select-Object @{Name = 'Application'; Expression = { $_.DisplayName } }, @{Name = 'Version'; Expression = { $_.DisplayVersion } }, Publisher
+
+$formattedOutput = $installedApps | Format-Table -Property Application, Version, Publisher -AutoSize | Out-String
+$formattedOutput | Out-File -FilePath $outputFilePath -Append -Encoding UTF8
+
+Write-Output "System information and installed applications have been written to $outputFilePath `n"
+
+# Wait for the user to press a key
+Read-Host -Prompt "Press Enter to exit"
+
