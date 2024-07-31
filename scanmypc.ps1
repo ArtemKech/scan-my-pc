@@ -71,21 +71,20 @@ $asciiArt = @"
  888oooooo  888           8  88     88 888o88           88 888o8 88      888              888oooo88  888         
         888 888o     oo  8oooo88    88   8888           88  888  88      888              888        888o     oo 
 o88oooo888   888oooo88 o88o  o888o o88o    88          o88o  8  o88o    o888o            o888o        888oooo88   
-
-
-
 "@
 
 $githubText = "
-                                                        GitHub: ArtemKech
-                                                        GitHub: HCooper97
 
+
+    GitHub: ArtemKech
+    GitHub: DeadDove13
 
 
 "
 
 # Display ASCII art in green
 Write-Host $asciiArt -ForegroundColor Green
+Write-Host $githubText -ForegroundColor white
 
 # Prompt the user to select the browser
 Write-Output "Select the browser to export bookmarks:"
