@@ -48,7 +48,7 @@ function Export-FirefoxProfile {
     foreach ($profile in $profiles) {
         $profilePath = $profile.FullName
         if (Test-Path "$profilePath\places.sqlite") {
-            $outputFirefoxProfile = "$desktopPath'Firefox_Profile'"
+            $outputFirefoxProfile = "$desktopPath\Firefox_Profile\"
 
             Write-Output "Copying Firefox profile from path: $profilePath`n"
 
