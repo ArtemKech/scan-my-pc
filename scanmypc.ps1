@@ -258,6 +258,26 @@ PNPClass: $($pnpDevice.PNPClass)
     }
 }
 
+# Mapped Network Drives Info
+$mappedDrives = Get-WmiObject -Query "SELECT * FROM Win32_NetworkConnection"
+
+$networkDriveInfo = @"
+------------------------------------------------------------
+Mapped Network Drives Info:
+------------------------------------------------------------
+
+"@
+foreach ($drive in $mappedDrives) {
+    $networkDriveInfo += @"
+Local Name: $($drive.LocalName)
+Remote Path: $($drive.RemoteName)
+Description: $($drive.Description)
+Status: $($drive.Status)
+
+"@
+}
+$networkDriveInfo | Out-File -FilePath $outputFilePath -Append -Encoding UTF8
+
 # Installed Applications
 $appInfo = @"
 ------------------------------------------------------------
@@ -279,4 +299,3 @@ Write-Output "System information and installed applications have been written to
 
 # Wait for the user to press a key
 Read-Host -Prompt "Press Enter to exit"
-
