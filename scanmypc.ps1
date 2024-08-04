@@ -94,7 +94,7 @@ try {
         1 {
             Export-Bookmarks -browserType 'Google\Chrome' -browserName 'Chrome'
             Export-Bookmarks -browserType 'Microsoft\Edge' -browserName 'Edge'
-            Export-FirefoxProfile  # Ensure this function is defined if using
+            Export-FirefoxProfile
         }
         0 {
             Write-Output "No bookmarks will be exported."
@@ -155,8 +155,16 @@ Max Clock Speed: $($processor.MaxClockSpeed) MHz
 
 # GPU Info
 $gpus = Get-CimInstance Win32_VideoController
-$qwMemorySize = (Get-ItemProperty -Path "HKLM:\SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0*" -Name HardwareInformation.qwMemorySize -ErrorAction SilentlyContinue)."HardwareInformation.qwMemorySize"
+
+if($gpus.Name -ilike "*NVIDIA*"){
+    $qwMemorySize = (Get-ItemProperty -Path "HKLM:\SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0*" -Name HardwareInformation.qwMemorySize -ErrorAction SilentlyContinue)."HardwareInformation.qwMemorySize"
+}
+elseif($gpus.Name -ilike "*Intel*"){
+    $qwMemorySize = ($gpus).AdapterRam
+}
+
 $VRAM = [math]::round($qwMemorySize / 1GB)
+
 foreach ($gpu in $gpus) {
     $gpuInfo = @"
 ------------------------------------------------------------
