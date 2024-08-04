@@ -1,7 +1,7 @@
 # Define the output path on the Desktop
 $desktopPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath('Desktop'))
 
-# Create the PCScan "output" folder on the Desktop
+# Create the PCScan folder on the Desktop
 $pcScanFolderPath = $desktopPath + "\PCScan"
 if (-not (Test-Path $pcScanFolderPath)) {
     New-Item -ItemType Directory -Path $pcScanFolderPath
@@ -10,26 +10,25 @@ if (-not (Test-Path $pcScanFolderPath)) {
 # Path for system info file inside the PCScan folder
 $outputFilePath = $pcScanFolderPath + "\system_info.txt"
 
-# Function to export browser bookmarks
-function Export-Bookmarks {
+# Function to export Chrome or Edge user profile
+function Export-BrowserProfile {
     param (
         [string]$browserType, # Type of browser (Chrome or Edge)
         [string]$browserName
     )
 
-    $bookmarksPath = "$env:LOCALAPPDATA\$browserType\User Data\Default\Bookmarks"
-    $outputFileName = $browserName + '_Bookmarks.json'
-    $outputFilePath = $pcScanFolderPath + "\" + $outputFileName
+    $profilePath = "$env:LOCALAPPDATA\$browserType\User Data\Default"
+    $outputProfilePath = $pcScanFolderPath + "\" + $browserName + "_Profile"
 
-    Write-Output "`nChecking for $browserType bookmarks at path: $bookmarksPath"
+    Write-Output "`nChecking for $browserType profile at path: $profilePath"
 
-    # Check if the bookmarks file exists and copy it to the PCScan folder
-    if (Test-Path $bookmarksPath) {
-        Copy-Item -Path $bookmarksPath -Destination $outputFilePath -ErrorAction Stop
-        Write-Output "`n$browserName bookmarks have been copied to the PCScan folder"
+    # Check if the profile directory exists and copy it to the PCScan folder
+    if (Test-Path $profilePath) {
+        Copy-Item -Path $profilePath -Destination $outputProfilePath -Recurse -ErrorAction Stop
+        Write-Output "`n$browserName profile has been copied to the PCScan folder"
     }
     else {
-        Write-Output "`n$browserName bookmarks file not found at path: $bookmarksPath"
+        Write-Output "`n$browserName profile not found at path: $profilePath"
     }
 }
 
@@ -80,8 +79,8 @@ $githubText = @"
 Write-Host $asciiArt -ForegroundColor Green
 Write-Host $githubText -ForegroundColor White
 
-# Prompt the user to select whether to export all bookmarks
-Write-Output "Do you want to export all bookmarks?"
+# Prompt the user to select whether to export all profiles
+Write-Output "Do you want to export all browser profiles?"
 Write-Output "1 - Yes"
 Write-Output "0 - No"
 
@@ -97,7 +96,7 @@ try {
             Export-FirefoxProfile
         }
         0 {
-            Write-Output "No bookmarks will be exported."
+            Write-Output "No browser profiles will be exported."
         }
         default {
             Write-Output "Invalid choice. Please run the script again and select a valid option."
