@@ -4,7 +4,7 @@ $desktopPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath('De
 # Create the PCScan folder on the Desktop
 $pcScanFolderPath = $desktopPath + "\PCScan"
 if (-not (Test-Path $pcScanFolderPath)) {
-    New-Item -ItemType Directory -Path $pcScanFolderPath
+    $null = New-Item -ItemType Directory -Path $pcScanFolderPath -Force
 }
 
 # Path for system info file inside the PCScan folder
@@ -24,8 +24,13 @@ function Export-BrowserProfile {
 
     # Check if the profile directory exists and copy it to the PCScan folder
     if (Test-Path $profilePath) {
-        Copy-Item -Path $profilePath -Destination $outputProfilePath -Recurse -ErrorAction Stop
-        Write-Output "`n$browserName profile has been copied to the PCScan folder"
+        try {
+            Copy-Item -Path $profilePath -Destination $outputProfilePath -Recurse -ErrorAction Stop
+            Write-Output "`n$browserName profile has been copied to the PCScan folder"
+        }
+        catch {
+            Write-Output "`nError copying $browserName profile: $_"
+        }
     }
     else {
         Write-Output "`n$browserName profile not found at path: $profilePath"
@@ -35,6 +40,8 @@ function Export-BrowserProfile {
 # Function to export Firefox profile
 function Export-FirefoxProfile {
     $firefoxProfilesPath = "$env:APPDATA\Mozilla\Firefox\Profiles"
+    Write-Output "Checking for Firefox profiles at path: $firefoxProfilesPath"
+
     $profiles = Get-ChildItem -Path $firefoxProfilesPath -Directory
 
     if ($profiles.Count -eq 0) {
@@ -44,14 +51,18 @@ function Export-FirefoxProfile {
 
     foreach ($profile in $profiles) {
         $profilePath = $profile.FullName
+        Write-Output "Checking profile at path: $profilePath"
         if (Test-Path "$profilePath\places.sqlite") {
             $outputFirefoxProfile = "$pcScanFolderPath\Firefox_Profile"
-
-            Write-Output "Copying Firefox profile from path: $profilePath`n"
-
-            Copy-Item -Path $profilePath -Destination $outputFirefoxProfile -Recurse -ErrorAction Stop
-            Write-Output "Firefox profile has been copied to the PCScan folder at $outputFirefoxProfile`n"
-            return
+            try {
+                Write-Output "Copying Firefox profile from path: $profilePath`n"
+                Copy-Item -Path $profilePath -Destination $outputFirefoxProfile -Recurse -ErrorAction Stop
+                Write-Output "Firefox profile has been copied to the PCScan folder at $outputFirefoxProfile`n"
+                return
+            }
+            catch {
+                Write-Output "Error copying Firefox profile: $_"
+            }
         }
     }
 
@@ -61,18 +72,19 @@ function Export-FirefoxProfile {
 # Define ASCII art text
 $asciiArt = @"
 
+
   ooooooo8    oooooooo8     o      oooo   oooo         oooo     oooo ooooo  oooo         oooooooooo    oooooooo8 
 888         o888     88    888      8888o  88           8888o   888    888  88            888    888 o888     88 
  888oooooo  888           8  88     88 888o88           88 888o8 88      888              888oooo88  888         
         888 888o     oo  8oooo88    88   8888           88  888  88      888              888        888o     oo 
 o88oooo888   888oooo88 o88o  o888o o88o    88          o88o  8  o88o    o888o            o888o        888oooo88   
+
+
 "@
 
 $githubText = @"
-
     GitHub: ArtemKech
     GitHub: DeadDove13
-
 "@
 
 # Display ASCII art in green
@@ -91,8 +103,8 @@ $userChoice = Read-Host "Enter your choice"
 try {
     switch ($userChoice) {
         1 {
-            Export-Bookmarks -browserType 'Google\Chrome' -browserName 'Chrome'
-            Export-Bookmarks -browserType 'Microsoft\Edge' -browserName 'Edge'
+            Export-BrowserProfile -browserType 'Google\Chrome' -browserName 'Chrome'
+            Export-BrowserProfile -browserType 'Microsoft\Edge' -browserName 'Edge'
             Export-FirefoxProfile
         }
         0 {
@@ -106,6 +118,7 @@ try {
 catch {
     Write-Output "An error occurred: $_"
 }
+
 
 # Initialize the output file with UTF-8 encoding
 Set-Content -Path $outputFilePath -Value "" -Encoding UTF8
@@ -155,10 +168,10 @@ Max Clock Speed: $($processor.MaxClockSpeed) MHz
 # GPU Info
 $gpus = Get-CimInstance Win32_VideoController
 
-if($gpus.Name -ilike "*NVIDIA*"){
+if ($gpus.Name -ilike "*NVIDIA*") {
     $qwMemorySize = (Get-ItemProperty -Path "HKLM:\SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0*" -Name HardwareInformation.qwMemorySize -ErrorAction SilentlyContinue)."HardwareInformation.qwMemorySize"
 }
-elseif($gpus.Name -ilike "*Intel*"){
+elseif ($gpus.Name -ilike "*Intel*") {
     $qwMemorySize = ($gpus).AdapterRam
 }
 
