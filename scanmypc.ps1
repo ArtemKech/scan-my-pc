@@ -1,8 +1,14 @@
 # Define the output path on the Desktop
 $desktopPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath('Desktop'))
 
-# Path for system info file + 
-$outputFilePath = $desktopPath + "\system_info.txt"
+# Create the PCScan "output" folder on the Desktop
+$pcScanFolderPath = $desktopPath + "\PCScan"
+if (-not (Test-Path $pcScanFolderPath)) {
+    New-Item -ItemType Directory -Path $pcScanFolderPath
+}
+
+# Path for system info file inside the PCScan folder
+$outputFilePath = $pcScanFolderPath + "\system_info.txt"
 
 # Function to export browser bookmarks
 function Export-Bookmarks {
@@ -13,22 +19,14 @@ function Export-Bookmarks {
 
     $bookmarksPath = "$env:LOCALAPPDATA\$browserType\User Data\Default\Bookmarks"
     $outputFileName = $browserName + '_Bookmarks.json'
-
-    if ($browserType -ne 'Google\Chrome' -and $browserType -ne 'Microsoft\Edge') {
-        
-        Write-Output "`nUnsupported browser type: $browserType"
-    }
-    elseif (-not $browserType) {
-       
-        Write-Output "`nThe browser was not selected"
-    }
+    $outputFilePath = $pcScanFolderPath + "\" + $outputFileName
 
     Write-Output "`nChecking for $browserType bookmarks at path: $bookmarksPath"
 
-    # Check if the bookmarks file exists and copy it to the Desktop
+    # Check if the bookmarks file exists and copy it to the PCScan folder
     if (Test-Path $bookmarksPath) {
-        Copy-Item -Path $bookmarksPath -Destination $desktopPath\$outputFileName -ErrorAction Stop
-        Write-Output "`n$browserName bookmarks have been copied to the Desktop"
+        Copy-Item -Path $bookmarksPath -Destination $outputFilePath -ErrorAction Stop
+        Write-Output "`n$browserName bookmarks have been copied to the PCScan folder"
     }
     else {
         Write-Output "`n$browserName bookmarks file not found at path: $bookmarksPath"
@@ -48,12 +46,12 @@ function Export-FirefoxProfile {
     foreach ($profile in $profiles) {
         $profilePath = $profile.FullName
         if (Test-Path "$profilePath\places.sqlite") {
-            $outputFirefoxProfile = "$desktopPath\Firefox_Profile\"
+            $outputFirefoxProfile = "$pcScanFolderPath\Firefox_Profile"
 
             Write-Output "Copying Firefox profile from path: $profilePath`n"
 
             Copy-Item -Path $profilePath -Destination $outputFirefoxProfile -Recurse -ErrorAction Stop
-            Write-Output "Firefox profile has been copied to the Desktop at $outputFirefoxProfile`n"
+            Write-Output "Firefox profile has been copied to the PCScan folder at $outputFirefoxProfile`n"
             return
         }
     }
@@ -64,8 +62,6 @@ function Export-FirefoxProfile {
 # Define ASCII art text
 $asciiArt = @"
 
-
-
   ooooooo8    oooooooo8     o      oooo   oooo         oooo     oooo ooooo  oooo         oooooooooo    oooooooo8 
 888         o888     88    888      8888o  88           8888o   888    888  88            888    888 o888     88 
  888oooooo  888           8  88     88 888o88           88 888o8 88      888              888oooo88  888         
@@ -73,55 +69,42 @@ $asciiArt = @"
 o88oooo888   888oooo88 o88o  o888o o88o    88          o88o  8  o88o    o888o            o888o        888oooo88   
 "@
 
-$githubText = "
-
+$githubText = @"
 
     GitHub: ArtemKech
     GitHub: DeadDove13
 
-
-"
+"@
 
 # Display ASCII art in green
 Write-Host $asciiArt -ForegroundColor Green
-Write-Host $githubText -ForegroundColor white
+Write-Host $githubText -ForegroundColor White
 
-# Prompt the user to select the browser
-Write-Output "Select the browser to export bookmarks:"
-Write-Output "1 - Chrome"
-Write-Output "2 - Edge"
-Write-Output "3 - Firefox"
-Write-Output "0 - None"
+# Prompt the user to select whether to export all bookmarks
+Write-Output "Do you want to export all bookmarks?"
+Write-Output "1 - Yes"
+Write-Output "0 - No"
 
 # Read user input
-$userChoice = Read-Host "
-
-Enter your choice"
+$userChoice = Read-Host "Enter your choice"
 
 # Perform the export based on user choice
 try {
     switch ($userChoice) {
         1 {
-            Export-Bookmarks -browserType 'Google\Chrome' 'Chrome'
-        }
-        2 {
-            Export-Bookmarks -browserType 'Microsoft\Edge' 'Edge'
-        }
-        3 {
+            Export-Bookmarks -browserType 'Google\Chrome' -browserName 'Chrome'
+            Export-Bookmarks -browserType 'Microsoft\Edge' -browserName 'Edge'
             Export-FirefoxProfile  # Ensure this function is defined if using
         }
         0 {
-            Write-Output ""
             Write-Output "No bookmarks will be exported."
         }
         default {
-            Write-Output ""
             Write-Output "Invalid choice. Please run the script again and select a valid option."
         }
     }
 }
 catch {
-    Write-Output ""
     Write-Output "An error occurred: $_"
 }
 
