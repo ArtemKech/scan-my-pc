@@ -26,14 +26,14 @@ function Export-BrowserProfile {
     if (Test-Path $profilePath) {
         try {
             Copy-Item -Path $profilePath -Destination $outputProfilePath -Recurse -ErrorAction Stop
-            Write-Output "`n$browserName profile has been copied to the PCScan folder"
+            Write-Host "`n$browserName profile has been copied to the PCScan folder" -ForegroundColor Green
         }
         catch {
-            Write-Output "`nError copying $browserName profile: $_"
+            Write-Host "`nError copying $browserName profile: $_" -ForegroundColor Red
         }
     }
     else {
-        Write-Output "`n$browserName profile not found at path: $profilePath"
+        Write-Host "`n$browserName profile not found at path: $profilePath" -ForegroundColor Red
     }
 }
 
@@ -45,7 +45,7 @@ function Export-FirefoxProfile {
     $profiles = Get-ChildItem -Path $firefoxProfilesPath -Directory
 
     if ($profiles.Count -eq 0) {
-        Write-Output "`nNo Firefox profiles found."
+        Write-Host "`nNo Firefox profiles found." -ForegroundColor Red
         return
     }
 
@@ -57,16 +57,16 @@ function Export-FirefoxProfile {
             try {
                 Write-Output "`nCopying Firefox profile from path: $profilePath"
                 Copy-Item -Path $profilePath -Destination $outputFirefoxProfile -Recurse -ErrorAction Stop
-                Write-Output "`nFirefox profile has been copied to the PCScan folder at $outputFirefoxProfile"
+                Write-Host "`nFirefox profile has been copied to the PCScan folder at $outputFirefoxProfile" -ForegroundColor Green
                 return
             }
             catch {
-                Write-Output "`nError copying Firefox profile: $_"
+                Write-Host "`nError copying Firefox profile: $_" -ForegroundColor Red
             }
         }
     }
 
-    Write-Output "`nNo valid Firefox profile found with places.sqlite`n"
+    Write-Host "`nNo valid Firefox profile found with places.sqlite`n" -ForegroundColor Red
 }
 
 # Define ASCII art text
@@ -111,12 +111,12 @@ try {
             Write-Output "`nNo browser profiles will be exported."
         }
         default {
-            Write-Output "`nInvalid choice. Please run the script again and select a valid option."
+            Write-Host "`nInvalid choice. Please run the script again and select a valid option." -ForegroundColor Red
         }
     }
 }
 catch {
-    Write-Output "An error occurred: $_"
+    Write-Host "An error occurred: $_" -ForegroundColor Red
 }
 
 
