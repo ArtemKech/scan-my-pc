@@ -70,6 +70,7 @@ function Export-FirefoxProfile {
 }
 
 # Define ASCII art text
+
 $asciiArt = @"
 
 
@@ -298,7 +299,7 @@ Select-Object @{Name = 'Application'; Expression = { $_.DisplayName } }, @{Name 
 $formattedOutput = $installedApps | Format-Table -Property Application, Version, Publisher -AutoSize | Out-String
 $formattedOutput | Out-File -FilePath $outputFilePath -Append -Encoding UTF8
 
-Write-Output "System information and installed applications have been written to $outputFilePath `n"
+Write-Host "System information and installed applications have been written to $outputFilePath `n" -ForegroundColor Green
 
 # Wait for the user to press a key
 Read-Host -Prompt "Press Enter to exit"
