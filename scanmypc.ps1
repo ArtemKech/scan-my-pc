@@ -10,6 +10,10 @@ if (-not (Test-Path $pcScanFolderPath)) {
 # Path for system info file inside the PCScan folder
 $outputFilePath = $pcScanFolderPath + "\system_info.txt"
 
+# Define the global variable for error message color
+$ErrorColour = "Red"
+$PassColour = "Green"
+
 # Function to export Chrome or Edge user profile
 function Export-BrowserProfile {
     param (
@@ -26,14 +30,14 @@ function Export-BrowserProfile {
     if (Test-Path $profilePath) {
         try {
             Copy-Item -Path $profilePath -Destination $outputProfilePath -Recurse -ErrorAction Stop
-            Write-Host "`n$browserName profile has been copied to the PCScan folder" -ForegroundColor Green
+            Write-Host "`n$browserName profile has been copied to the PCScan folder" -ForegroundColor $PassColour
         }
         catch {
-            Write-Host "`nError copying $browserName profile: $_" -ForegroundColor Red
+            Write-Host "`nError copying $browserName profile: $_" -ForegroundColor $ErrorColour
         }
     }
     else {
-        Write-Host "`n$browserName profile not found at path: $profilePath" -ForegroundColor Red
+        Write-Host "`n$browserName profile not found at path: $profilePath" -ForegroundColor $ErrorColour
     }
 }
 
@@ -45,7 +49,7 @@ function Export-FirefoxProfile {
     $profiles = Get-ChildItem -Path $firefoxProfilesPath -Directory
 
     if ($profiles.Count -eq 0) {
-        Write-Host "`nNo Firefox profiles found." -ForegroundColor Red
+        Write-Host "`nNo Firefox profiles found." -ForegroundColor $ErrorColour
         return
     }
 
@@ -57,16 +61,16 @@ function Export-FirefoxProfile {
             try {
                 Write-Output "`nCopying Firefox profile from path: $profilePath"
                 Copy-Item -Path $profilePath -Destination $outputFirefoxProfile -Recurse -ErrorAction Stop
-                Write-Host "`nFirefox profile has been copied to the PCScan folder at $outputFirefoxProfile" -ForegroundColor Green
+                Write-Host "`nFirefox profile has been copied to the PCScan folder at $outputFirefoxProfile" -ForegroundColor $PassColour
                 return
             }
             catch {
-                Write-Host "`nError copying Firefox profile: $_" -ForegroundColor Red
+                Write-Host "`nError copying Firefox profile: $_" -ForegroundColor $ErrorColour
             }
         }
     }
 
-    Write-Host "`nNo valid Firefox profile found with places.sqlite`n" -ForegroundColor Red
+    Write-Host "`nNo valid Firefox profile found with places.sqlite`n" -ForegroundColor $ErrorColour
 }
 
 # Define ASCII art text
@@ -112,12 +116,12 @@ try {
             Write-Output "`nNo browser profiles will be exported."
         }
         default {
-            Write-Host "`nInvalid choice. Please run the script again and select a valid option." -ForegroundColor Red
+            Write-Host "`nInvalid choice. Please run the script again and select a valid option." -ForegroundColor $ErrorColour
         }
     }
 }
 catch {
-    Write-Host "An error occurred: $_" -ForegroundColor Red
+    Write-Host "An error occurred: $_" -ForegroundColor $ErrorColour
 }
 
 
@@ -299,7 +303,7 @@ Select-Object @{Name = 'Application'; Expression = { $_.DisplayName } }, @{Name 
 $formattedOutput = $installedApps | Format-Table -Property Application, Version, Publisher -AutoSize | Out-String
 $formattedOutput | Out-File -FilePath $outputFilePath -Append -Encoding UTF8
 
-Write-Host "System information and installed applications have been written to $outputFilePath `n" -ForegroundColor Green
+Write-Host "System information and installed applications have been written to $outputFilePath `n" -ForegroundColor $PassColour
 
 # Wait for the user to press a key
 Read-Host -Prompt "Press Enter to exit"
