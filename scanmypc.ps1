@@ -40,33 +40,33 @@ function Export-BrowserProfile {
 # Function to export Firefox profile
 function Export-FirefoxProfile {
     $firefoxProfilesPath = "$env:APPDATA\Mozilla\Firefox\Profiles"
-    Write-Output "Checking for Firefox profiles at path: $firefoxProfilesPath"
+    Write-Output "`nChecking for Firefox profiles at path: $firefoxProfilesPath"
 
     $profiles = Get-ChildItem -Path $firefoxProfilesPath -Directory
 
     if ($profiles.Count -eq 0) {
-        Write-Output "No Firefox profiles found."
+        Write-Output "`nNo Firefox profiles found."
         return
     }
 
     foreach ($profile in $profiles) {
         $profilePath = $profile.FullName
-        Write-Output "Checking profile at path: $profilePath"
+        Write-Output "`nChecking profile at path: $profilePath"
         if (Test-Path "$profilePath\places.sqlite") {
             $outputFirefoxProfile = "$pcScanFolderPath\Firefox_Profile"
             try {
-                Write-Output "Copying Firefox profile from path: $profilePath`n"
+                Write-Output "`nCopying Firefox profile from path: $profilePath"
                 Copy-Item -Path $profilePath -Destination $outputFirefoxProfile -Recurse -ErrorAction Stop
-                Write-Output "Firefox profile has been copied to the PCScan folder at $outputFirefoxProfile`n"
+                Write-Output "`nFirefox profile has been copied to the PCScan folder at $outputFirefoxProfile"
                 return
             }
             catch {
-                Write-Output "Error copying Firefox profile: $_"
+                Write-Output "`nError copying Firefox profile: $_"
             }
         }
     }
 
-    Write-Output "No valid Firefox profile found with places.sqlite`n"
+    Write-Output "`nNo valid Firefox profile found with places.sqlite`n"
 }
 
 # Define ASCII art text
@@ -92,7 +92,7 @@ Write-Host $asciiArt -ForegroundColor Green
 Write-Host $githubText -ForegroundColor White
 
 # Prompt the user to select whether to export all profiles
-Write-Output "Do you want to export all browser profiles?"
+Write-Output "`nDo you want to export all browser profiles?"
 Write-Output "1 - Yes"
 Write-Output "0 - No"
 
@@ -108,10 +108,10 @@ try {
             Export-FirefoxProfile
         }
         0 {
-            Write-Output "No browser profiles will be exported."
+            Write-Output "`nNo browser profiles will be exported."
         }
         default {
-            Write-Output "Invalid choice. Please run the script again and select a valid option."
+            Write-Output "`nInvalid choice. Please run the script again and select a valid option."
         }
     }
 }
